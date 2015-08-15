@@ -1,0 +1,50 @@
+# Maintainer: Julien Nicoulaud <julien.nicoulaud@gmail.com>
+# Source: https://github.com/nicoulaj/archlinux-packages
+pkgname=byteman
+pkgver=2.1.3
+pkgrel=1
+pkgdesc="Inject side effects into Java programs for the purpose of tracing and testing application behaviour."
+arch=(any)
+url="http://www.jboss.org/byteman"
+license=(LGPL)
+depends=('java-environment>=6' 'bash')
+install=${pkgname}.install
+changelog=Changelog
+conflicts=(${pkgname}-git)
+source=(http://downloads.jboss.org/${pkgname}/${pkgver}/${pkgname}-download-${pkgver}-bin.zip)
+md5sums=('6e4d38ef516c65145efa9e68e7d0ab37')
+
+build() {
+  msg2 "Generate scripts for /etc/profile.d..."
+  cat <<EOF > "${srcdir}"/${pkgname}.profile.d.sh
+export BYTEMAN_HOME=/usr/share/java/${pkgname}
+EOF
+  cat <<EOF > "${srcdir}"/${pkgname}.profile.d.csh
+export BYTEMAN_HOME=/usr/share/java/${pkgname}
+EOF
+}
+
+package() {
+  msg2 "Install the assembly at /usr/share/java/${pkgname}..."
+  install -dm755                                    "${pkgdir}/usr/share/java/${pkgname}"
+  cp -a "${srcdir}"/${pkgname}-download-${pkgver}/* "${pkgdir}/usr/share/java/${pkgname}"
+
+  msg2 "Set up the BYTEMAN_HOME environment variable in /etc/profile.d..."
+  install -Dm755 "${srcdir}"/${pkgname}.profile.d.sh  "${pkgdir}"/etc/profile.d/${pkgname}.sh
+  install -Dm755 "${srcdir}"/${pkgname}.profile.d.csh "${pkgdir}"/etc/profile.d/${pkgname}.csh
+
+  msg2 "Install links to the documentation resources at /usr/share/doc/${pkgname}..."
+  install -dm755                          "${pkgdir}/usr/share/doc/${pkgname}"
+  ln -s /usr/share/java/${pkgname}/README "${pkgdir}/usr/share/doc/${pkgname}/README"
+  ln -s /usr/share/java/${pkgname}/docs   "${pkgdir}/usr/share/doc/${pkgname}/docs"
+  ln -s /usr/share/java/${pkgname}/sample "${pkgdir}/usr/share/doc/${pkgname}/sample"
+
+  msg2 "Install links to the executables in /usr/bin..."
+  install -dm755                                    "${pkgdir}/usr/bin"
+  ln -s /usr/share/java/${pkgname}/bin/bmcheck.sh   "${pkgdir}/usr/bin/bmcheck"
+  ln -s /usr/share/java/${pkgname}/bin/bminstall.sh "${pkgdir}/usr/bin/bminstall"
+  ln -s /usr/share/java/${pkgname}/bin/bmjava.sh    "${pkgdir}/usr/bin/bmjava"
+  ln -s /usr/share/java/${pkgname}/bin/bmsubmit.sh  "${pkgdir}/usr/bin/bmsubmit"
+}
+
+# vim:set ts=2 sw=2 et:
